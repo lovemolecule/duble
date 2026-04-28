@@ -237,90 +237,44 @@
 </div>
 
 <script>
-    // ========== ШЕЛЕСТ СТРАНИЦ ==========
-    // Создаём аудиоконтекст для шелеста (используем Web Audio API для генерации звука)
-    let audioCtx = null;
+    // ========== ШЕЛЕСТ СТРАНИЦ (ИЗ ВАШЕГО ФАЙЛА) ==========
+    let flipAudio = null;
     let pageFlipSoundEnabled = false;
     
-    // Функция для воспроизведения шелеста страницы
+    // Функция для воспроизведения вашего звукового файла
     function playPageFlipSound() {
         if (!pageFlipSoundEnabled) return;
         
         try {
-            // Если аудиоконтекст ещё не создан, создаём
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            // Если звук ещё не создан — создаём
+            if (!flipAudio) {
+                flipAudio = new Audio('page-flip-sound.mp3');
+                flipAudio.volume = 0.3;  // Громкость (0.0 - 1.0), можно изменить
+                flipAudio.preload = 'auto';
             }
             
-            // Воскрешаем контекст, если он приостановлен
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            
-            // Создаём короткий звук шелеста бумаги
-            const now = audioCtx.currentTime;
-            const gainNode = audioCtx.createGain();
-            gainNode.gain.setValueAtTime(0.15, now);
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
-            gainNode.connect(audioCtx.destination);
-            
-            // Белый шум + фильтр для эффекта шелеста
-            const bufferSize = 4096;
-            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const output = noiseBuffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                output[i] = (Math.random() * 2 - 1) * 0.3;
-            }
-            
-            const noiseSource = audioCtx.createBufferSource();
-            noiseSource.buffer = noiseBuffer;
-            
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.value = 1200;
-            filter.Q.value = 1.5;
-            
-            noiseSource.connect(filter);
-            filter.connect(gainNode);
-            noiseSource.start();
-            noiseSource.stop(now + 0.25);
-            
-            // Дополнительный короткий звук (щёлчок бумаги)
-            const clickBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const clickOutput = clickBuffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                const t = i / audioCtx.sampleRate;
-                clickOutput[i] = (Math.exp(-t * 80) * (Math.random() * 2 - 1) * 0.2);
-            }
-            
-            const clickSource = audioCtx.createBufferSource();
-            clickSource.buffer = clickBuffer;
-            const clickGain = audioCtx.createGain();
-            clickGain.gain.setValueAtTime(0.08, now);
-            clickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
-            clickSource.connect(clickGain);
-            clickGain.connect(audioCtx.destination);
-            clickSource.start();
-            clickSource.stop(now + 0.1);
+            // Перематываем в начало и воспроизводим
+            flipAudio.currentTime = 0;
+            flipAudio.play().catch(e => console.log('Audio play blocked until user interaction'));
             
         } catch(e) {
-            console.warn('Sound not supported:', e);
+            console.warn('Sound error:', e);
         }
     }
     
-    // Функция активации звука (должна быть вызвана после первого касания пользователя)
+    // Функция активации звука (вызывается после первого касания пользователя)
     function enablePageFlipSound() {
         if (pageFlipSoundEnabled) return;
         pageFlipSoundEnabled = true;
         
-        // Создаём и резолвим аудиоконтекст
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // Предварительно загружаем звук
+        if (!flipAudio) {
+            flipAudio = new Audio('page-flip-sound.mp3');
+            flipAudio.volume = 0.3;
+            flipAudio.load();
         }
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
-        console.log('✅ Page flip sound enabled');
+        
+        console.log('✅ Page flip sound enabled (your custom sound)');
     }
     
     // Автоматически включаем звук при первом любом взаимодействии с приложением
@@ -427,7 +381,7 @@
         if (destinationIdx === currentIdx) return;
         if (destinationIdx < 0 || destinationIdx >= total) return;
         
-        // Воспроизводим шелест при перелистывании
+        // Воспроизводим ваш звук при перелистывании
         if (playSound) playPageFlipSound();
         
         const dir = destinationIdx > currentIdx ? 1 : -1;
