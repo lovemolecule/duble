@@ -237,6 +237,103 @@
 </div>
 
 <script>
+    // ========== ШЕЛЕСТ СТРАНИЦ ==========
+    // Создаём аудиоконтекст для шелеста (используем Web Audio API для генерации звука)
+    let audioCtx = null;
+    let pageFlipSoundEnabled = false;
+    
+    // Функция для воспроизведения шелеста страницы
+    function playPageFlipSound() {
+        if (!pageFlipSoundEnabled) return;
+        
+        try {
+            // Если аудиоконтекст ещё не создан, создаём
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            // Воскрешаем контекст, если он приостановлен
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
+            // Создаём короткий звук шелеста бумаги
+            const now = audioCtx.currentTime;
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(0.15, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+            gainNode.connect(audioCtx.destination);
+            
+            // Белый шум + фильтр для эффекта шелеста
+            const bufferSize = 4096;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = (Math.random() * 2 - 1) * 0.3;
+            }
+            
+            const noiseSource = audioCtx.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+            
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 1200;
+            filter.Q.value = 1.5;
+            
+            noiseSource.connect(filter);
+            filter.connect(gainNode);
+            noiseSource.start();
+            noiseSource.stop(now + 0.25);
+            
+            // Дополнительный короткий звук (щёлчок бумаги)
+            const clickBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const clickOutput = clickBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                const t = i / audioCtx.sampleRate;
+                clickOutput[i] = (Math.exp(-t * 80) * (Math.random() * 2 - 1) * 0.2);
+            }
+            
+            const clickSource = audioCtx.createBufferSource();
+            clickSource.buffer = clickBuffer;
+            const clickGain = audioCtx.createGain();
+            clickGain.gain.setValueAtTime(0.08, now);
+            clickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+            clickSource.connect(clickGain);
+            clickGain.connect(audioCtx.destination);
+            clickSource.start();
+            clickSource.stop(now + 0.1);
+            
+        } catch(e) {
+            console.warn('Sound not supported:', e);
+        }
+    }
+    
+    // Функция активации звука (должна быть вызвана после первого касания пользователя)
+    function enablePageFlipSound() {
+        if (pageFlipSoundEnabled) return;
+        pageFlipSoundEnabled = true;
+        
+        // Создаём и резолвим аудиоконтекст
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        console.log('✅ Page flip sound enabled');
+    }
+    
+    // Автоматически включаем звук при первом любом взаимодействии с приложением
+    function setupSoundOnFirstInteraction() {
+        const events = ['click', 'touchstart', 'touchend'];
+        const handler = () => {
+            enablePageFlipSound();
+            events.forEach(ev => document.body.removeEventListener(ev, handler));
+        };
+        events.forEach(ev => document.body.addEventListener(ev, handler));
+    }
+    setupSoundOnFirstInteraction();
+
     // ========== ГЛОБАЛЬНАЯ ФУНКЦИЯ ПЕРЕХОДА ==========
     let globalJumpToPage = null;
 
@@ -326,9 +423,13 @@
         counterSpan.innerText = `стр. 1 / ${total}`;
     }
 
-    function flipToPage(destinationIdx) {
+    function flipToPage(destinationIdx, playSound = true) {
         if (destinationIdx === currentIdx) return;
         if (destinationIdx < 0 || destinationIdx >= total) return;
+        
+        // Воспроизводим шелест при перелистывании
+        if (playSound) playPageFlipSound();
+        
         const dir = destinationIdx > currentIdx ? 1 : -1;
         const steps = Math.abs(destinationIdx - currentIdx);
         function doFlip(step) {
@@ -351,7 +452,7 @@
     }
 
     function jumpToPage(pageIndex) {
-        flipToPage(pageIndex);
+        flipToPage(pageIndex, true);
     }
 
     globalJumpToPage = jumpToPage;
@@ -380,32 +481,32 @@
 
     const origFlip = flipToPage;
     window.flipToPage = function(idx) {
-        origFlip(idx);
+        origFlip(idx, true);
         setTimeout(() => attachDynamicEvents(), 100);
     };
     flipToPage = function(idx) {
-        origFlip(idx);
+        origFlip(idx, true);
         setTimeout(() => attachDynamicEvents(), 100);
     };
 
     buildBook();
     prevBtn.addEventListener('click', () => {
-        if (currentIdx > 0) flipToPage(currentIdx - 1);
+        if (currentIdx > 0) flipToPage(currentIdx - 1, true);
     });
     nextBtn.addEventListener('click', () => {
-        if (currentIdx < total - 1) flipToPage(currentIdx + 1);
+        if (currentIdx < total - 1) flipToPage(currentIdx + 1, true);
     });
     
     document.querySelectorAll('.toc-link').forEach(btn => {
         btn.addEventListener('click', () => {
             let target = parseInt(btn.dataset.page, 10);
-            flipToPage(target);
+            flipToPage(target, true);
         });
     });
     
     setTimeout(() => attachDynamicEvents(), 200);
 
-    // ========== VK Bridge ИНИЦИАЛИЗАЦИЯ + ВОДЯНОЙ ЗНАК С ID ПОЛЬЗОВАТЕЛЯ ==========
+    // ========== VK Bridge ИНИЦИАЛИЗАЦИЯ + ВОДЯНОЙ ЗНАК ==========
     (function() {
         if (typeof vkBridge !== 'undefined') {
             vkBridge.subscribe((event) => {
@@ -415,25 +516,20 @@
             vkBridge.send('VKWebAppInit')
                 .then(() => {
                     console.log('✅ VK Mini App initialized');
-                    // Пытаемся запретить скриншоты
                     return vkBridge.send('VKWebAppDisableScreenshots')
                         .catch(() => vkBridge.send('VKWebAppSetScreenshotSettings', { is_secret: true }));
                 })
                 .then(() => console.log('✅ Screenshot protection attempt done'))
                 .catch((error) => console.error('❌ VK Bridge error:', error))
                 .finally(() => {
-                    // ВОДЯНОЙ ЗНАК С ID ПОЛЬЗОВАТЕЛЯ (добавляем после инициализации)
                     vkBridge.send('VKWebAppGetUserInfo')
                         .then(data => {
-                            const userId = data.id;
                             const watermark = document.createElement('div');
                             watermark.style.cssText = 'position:fixed; bottom:6px; left:8px; font-size:9px; color:rgba(100,70,40,0.25); font-family:monospace; pointer-events:none; z-index:9999; background:transparent; white-space:nowrap;';
-                            watermark.innerText = `Дзенопедия • ID:${userId} • ${new Date().toLocaleDateString()}`;
+                            watermark.innerText = `Дзенопедия • ID:${data.id} • ${new Date().toLocaleDateString()}`;
                             document.body.appendChild(watermark);
-                            console.log('✅ Watermark added for user:', userId);
                         })
                         .catch(err => {
-                            console.warn('Could not get user info, adding demo watermark', err);
                             const watermark = document.createElement('div');
                             watermark.style.cssText = 'position:fixed; bottom:6px; left:8px; font-size:9px; color:rgba(100,70,40,0.25); font-family:monospace; pointer-events:none; z-index:9999;';
                             watermark.innerText = `Дзенопедия • Демо-режим`;
@@ -447,7 +543,6 @@
             hint.innerText = '💡 Предпросмотр вне VK. Приложение станет полноценным внутри ВКонтакте.';
             body.insertBefore(hint, body.firstChild);
             
-            // Демо-водяной знак для предпросмотра
             const demoWatermark = document.createElement('div');
             demoWatermark.style.cssText = 'position:fixed; bottom:6px; left:8px; font-size:9px; color:rgba(100,70,40,0.25); font-family:monospace; pointer-events:none; z-index:9999;';
             demoWatermark.innerText = `Дзенопедия • Демо‑режим`;
