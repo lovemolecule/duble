@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -36,7 +36,7 @@
             border: none;
             font-family: 'Inter', sans-serif;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             padding: 6px 16px;
             border-radius: 40px;
             color: #5a3e2a;
@@ -79,7 +79,7 @@
         .page-front::-webkit-scrollbar { width: 5px; background: #eaddcd; }
         .page-front::-webkit-scrollbar-thumb { background: #c0a07a; border-radius: 10px; }
         .ency-title {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 700;
             font-family: 'Playfair Display', serif;
             color: #b4602c;
@@ -168,7 +168,6 @@
             z-index: 35;
         }
         .back-to-toc {
-            float: right;
             background: #e9d5be;
             border: none;
             font-size: 0.75rem;
@@ -176,6 +175,8 @@
             border-radius: 40px;
             cursor: pointer;
             margin-top: 20px;
+            transition: 0.2s;
+            display: inline-block;
         }
         .back-to-toc:hover { background: #cfa67b; color: white; }
         .myth-badge, .warning-card {
@@ -185,13 +186,30 @@
             margin: 15px 0;
             border: 1px solid #e7caac;
         }
+        .toc-link-chapter {
+            display: block;
+            background: #fef5ea;
+            padding: 10px 16px;
+            margin: 8px 0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 500;
+            border-left: 4px solid #dc9e65;
+            text-decoration: none;
+            color: #3b2a1f;
+        }
+        .toc-link-chapter:hover {
+            background: #ecdbbc;
+            transform: translateX(8px);
+        }
+        hr { margin: 20px 0; border-color: #eedccb; }
         @media (max-width: 780px) {
             .page-front { padding: 22px; }
-            .ency-title { font-size: 1.6rem; }
+            .ency-title { font-size: 1.5rem; }
             .glossary-grid { grid-template-columns: 1fr; }
             .toc-link { font-size: 0.7rem; padding: 4px 12px; }
         }
-        hr { margin: 20px 0; border-color: #eedccb; }
     </style>
 </head>
 <body>
@@ -219,9 +237,12 @@
 </div>
 
 <script>
-    // ========== ПОЛНОЦЕННЫЙ КОНТЕНТ: 10 СТРАНИЦ ==========
+    // ========== ГЛОБАЛЬНАЯ ФУНКЦИЯ ПЕРЕХОДА ==========
+    let globalJumpToPage = null;
+
+    // ========== КОНТЕНТ СТРАНИЦ (10 страниц) ==========
     const pagesContent = [
-        // 0 - Вступление с картинкой-эмблемой
+        // 0 - Вступление
         `<div>
             <div class="hero-image" style="height:130px; margin-bottom:20px;"></div>
             <div class="chapter-badge">ДЗЕНОПЕДИЯ FREE</div>
@@ -232,39 +253,50 @@
             </div>
             <p>«Дзенопедия» — не сборник вдохновляющих цитат, а прикладная инструкция. Здесь вы получите систему: чёткие термины, честные алгоритмы, реальные метрики.</p>
             <div style="margin-top:20px"><span class="floating-icon">🧭</span> <strong>После этой книги</strong> вы перестанете быть игрушкой алгоритма.</div>
-            <button class="back-to-toc" onclick="document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">📑 Вернуться к оглавлению</button>
+            <div style="margin-top:30px;"><button class="back-to-toc" data-goto-toc="1">📑 Вернуться к содержанию</button></div>
         </div>`,
-        // 1 - Содержание (гиперссылки ведут на страницы через data-page)
+        // 1 - СОДЕРЖАНИЕ с кликабельными гиперссылками на главы
         `<div>
-            <div class="chapter-badge">📖 СОДЕРЖАНИЕ</div>
+            <div class="chapter-badge">📖 СОДЕРЖАНИЕ (нажми на любую главу)</div>
             <h1 class="ency-title">Все главы Дзенопедии</h1>
-            <div style="display:flex; flex-direction:column; gap:8px; margin:20px 0;">
-                <div><strong>Вступление</strong> — стр.1</div>
-                <div><strong>Часть I. Как устроен Дзен</strong><br>— Глава 1. Словарь 30 терминов (стр.3-4)<br>— Глава 2. Алгоритм Дзена (стр.5)<br>— Глава 3. Форматы контента (стр.5)<br>— Глава 4. Свод правил (стр.6)</div>
-                <div><strong>Часть II. Стратегия контента</strong><br>— Глава 5-6. Статьи + визуал (стр.6)<br>— Глава 7. Видеоконтент (стр.7)<br>— Глава 8. ИИ и маркировка (стр.7)</div>
-                <div><strong>Часть III. Продвижение</strong><br>— Глава 9. Комментарии (стр.7)</div>
-                <div><strong>Часть IV. Деньги</strong><br>— Глава 10-12. Монетизация, CPM, налоги (стр.8)</div>
-                <div><strong>Часть V. Аналитика</strong><br>— Глава 13. Метрики (стр.9)</div>
-                <div><strong>Часть VI. Кризисы</strong><br>— Глава 14-15. Падения, выгорание, санкции (стр.10)</div>
+            <div style="margin: 25px 0;">
+                <div class="toc-link-chapter" data-goto-page="0">📘 Вступление — стр.1</div>
+                <div style="font-weight:700; margin-top:15px;">Часть I. Как устроен Дзен</div>
+                <div class="toc-link-chapter" data-goto-page="2">📖 Глава 1. Словарь 1–15 (стр.3)</div>
+                <div class="toc-link-chapter" data-goto-page="3">📖 Глава 1. Словарь 16–30 (стр.4)</div>
+                <div class="toc-link-chapter" data-goto-page="4">⚙️ Глава 2. Алгоритм Дзена + Глава 3. Форматы (стр.5)</div>
+                <div class="toc-link-chapter" data-goto-page="5">⚠️ Глава 4. Свод правил + Глава 5-6. Стратегия статей (стр.6)</div>
+                
+                <div style="font-weight:700; margin-top:15px;">Часть II. Стратегия контента</div>
+                <div class="toc-link-chapter" data-goto-page="6">🎬 Глава 7. Видео + Глава 8. ИИ + Глава 9. Комментарии (стр.7)</div>
+                
+                <div style="font-weight:700; margin-top:15px;">Часть IV. Деньги</div>
+                <div class="toc-link-chapter" data-goto-page="7">💰 Глава 10-12. Монетизация, CPM, налоги (стр.8)</div>
+                
+                <div style="font-weight:700; margin-top:15px;">Часть V. Аналитика</div>
+                <div class="toc-link-chapter" data-goto-page="8">📊 Глава 13. Ключевые метрики (стр.9)</div>
+                
+                <div style="font-weight:700; margin-top:15px;">Часть VI. Кризисы</div>
+                <div class="toc-link-chapter" data-goto-page="9">🆘 Глава 14-15. Падения, выгорание, санкции (стр.10)</div>
             </div>
-            <button class="back-to-toc" onclick="document.querySelector('.toc-link[data-page=\\'0\\']').click();">🔖 К вступлению</button>
+            <div style="margin-top:20px;"><button class="back-to-toc" data-goto-toc="1">🔖 Обновить содержание</button></div>
         </div>`,
-        // 2 - Словарь 1-15 + красивые термины
-        `<div><div class="chapter-badge">📚 ЧАСТЬ I · Глава 1</div><h1 class="ency-title">Словарь автора (1–15)</h1><div class="glossary-grid"><div class="term"><strong>1. Алгоритм Дзена</strong> — нейросеть ранжирования, учится на поведении.</div><div class="term"><strong>2. Вовлечённость (ER)</strong> — лайки+комменты+репосты.</div><div class="term"><strong>3. Воронка чтения</strong> — путь от показа до дочитывания.</div><div class="term"><strong>4. Дочитывание</strong> — главная валюта Дзена, признак качества.</div><div class="term"><strong>5. Заголовок</strong> — 80% успеха клика, 7–10 слов.</div><div class="term"><strong>6. Карточка</strong> — обложка+заголовок, лицо статьи.</div><div class="term"><strong>7. Канал</strong> — ваш дом в Дзене, витрина.</div><div class="term"><strong>8. Кликбейт</strong> — допустим в меру, без обмана.</div><div class="term"><strong>9. Монетизация</strong> — доход от рекламы после 100 подписчиков.</div><div class="term"><strong>10. Нарратив</strong> — слайд-история, текст+кадры.</div><div class="term"><strong>11. Обложка</strong> — 16:9, контрастная, читаемая в миниатюре.</div><div class="term"><strong>12. Охват</strong> — уникальные показы, сырая аудитория.</div><div class="term"><strong>13. CTA</strong> — призыв к действию, без него нет подписок.</div><div class="term"><strong>14. Просмотр</strong> — клик по карточке.</div><div class="term"><strong>15. Статистика</strong> — пульс канала в Студии.</div></div><button class="back-to-toc" onclick="document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">📌 Содержание</button></div>`,
+        // 2 - Словарь 1-15
+        `<div><div class="chapter-badge">📚 ЧАСТЬ I · Глава 1</div><h1 class="ency-title">Словарь автора (1–15)</h1><div class="glossary-grid"><div class="term"><strong>1. Алгоритм Дзена</strong> — нейросеть ранжирования.</div><div class="term"><strong>2. Вовлечённость (ER)</strong> — лайки+комменты+репосты.</div><div class="term"><strong>3. Воронка чтения</strong> — путь от показа до дочитывания.</div><div class="term"><strong>4. Дочитывание</strong> — главная валюта Дзена.</div><div class="term"><strong>5. Заголовок</strong> — 80% успеха клика.</div><div class="term"><strong>6. Карточка</strong> — обложка+заголовок.</div><div class="term"><strong>7. Канал</strong> — ваш дом в Дзене.</div><div class="term"><strong>8. Кликбейт</strong> — допустим в меру.</div><div class="term"><strong>9. Монетизация</strong> — рекламный доход после 100 подписчиков.</div><div class="term"><strong>10. Нарратив</strong> — слайд-история.</div><div class="term"><strong>11. Обложка</strong> — 16:9, контрастная.</div><div class="term"><strong>12. Охват</strong> — уникальные показы.</div><div class="term"><strong>13. CTA</strong> — призыв к действию.</div><div class="term"><strong>14. Просмотр</strong> — клик по карточке.</div><div class="term"><strong>15. Статистика</strong> — пульс канала.</div></div><button class="back-to-toc" data-goto-toc="1">📌 К содержанию</button></div>`,
         // 3 - словарь 16-30
-        `<div><div class="chapter-badge">СЛОВАРЬ 16–30</div><div class="glossary-grid"><div class="term"><strong>16. Студия Дзена</strong> — личный кабинет, управление.</div><div class="term"><strong>17. Теги</strong> — для поиска и тематики.</div><div class="term"><strong>18. Уникальность</strong> — авторский взгляд, не копипаст.</div><div class="term"><strong>19. CPM</strong> — цена 1000 показов рекламы (80–600₽).</div><div class="term"><strong>20. CTR</strong> — кликабельность карточки, норма 3–7%.</div><div class="term"><strong>21. Дзен-Подписки</strong> — платный доступ к эксклюзиву.</div><div class="term"><strong>22. Донаты</strong> — кнопка «Спасибо», 0% комиссии.</div><div class="term"><strong>23. Отложенная публикация</strong> — планирование постов.</div><div class="term"><strong>24. Черновик</strong> — хранилище идей.</div><div class="term"><strong>25. Дублированный контент</strong> — запрещён, снижает охваты.</div><div class="term"><strong>26. Теневой бан</strong> — скрытые ограничения показов.</div><div class="term"><strong>27. Демонетизация</strong> — отключение рекламы за нарушения.</div><div class="term"><strong>28. Контент-план</strong> — дорожная карта регулярности.</div><div class="term"><strong>29. Ниша</strong> — тематика (узкая = высокий CPM).</div><div class="term"><strong>30. УТП</strong> — почему читатель выбирает вас.</div></div><div class="warning-card"><span>🧠</span> <strong>Совет:</strong> Распечатайте эти термины — они спасут в разговорах с поддержкой.</div><button class="back-to-toc" onclick="window.scrollTo({top:0,behavior:'smooth'});">К оглавлению</button></div>`,
-        // 4 - Алгоритм + Форматы (Глава 2 + 3)
-        `<div><div class="chapter-badge">⚙️ Глава 2 · АЛГОРИТМ</div><h1 class="ency-title">Как думает нейросеть Дзена</h1><p>Алгоритм ранжирует контент по сигналам: дочитывание, время просмотра, комментарии. Он не враг, а инструмент. <strong>Принцип снежного кома</strong>: сначала тестовая группа (50–200 чел), при хороших сигналах — охват ×10.</p><div class="myth-badge"><strong>🚫 Мифы:</strong> «алгоритм заблокировал» → в 95% случаев упало качество. Время публикации неважно, важна реакция.</div><div class="chapter-badge">📱 Глава 3 · ФОРМАТЫ</div><h3>Статья, пост, видео, нарратив</h3><ul><li><strong>Статья</strong> (2000+ знаков) — экспертность</li><li><strong>Пост</strong> (300–800 знаков) — быстрый контакт</li><li><strong>Видео горизонтальное</strong> 5–10 мин</li><li><strong>Вертикальный ролик</strong> 30–90 секунд</li><li><strong>Нарратив</strong> — слайды, листание как сторис</li></ul><button class="back-to-toc" onclick="document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">📑 Оглавление</button></div>`,
-        // 5 - Глава 4 правила + Глава 5-6 стратегия
-        `<div><div class="chapter-badge">⚠️ Глава 4 · ЗАПРЕЩЕННЫЙ КОНТЕНТ</div><p><strong>Шкала наказаний:</strong> предупреждение → демонетизация → теневой бан → блокировка. Запрещены: призывы к насилию, порно, копипаст, фейк-новости, опасные медсоветы.</p><hr><div class="chapter-badge">📝 Глава 5-6 · СТРАТЕГИЯ СТАТЕЙ</div><h2>Анатомия дочитывания</h2><p>Заголовок-польза → лид без воды → короткие абзацы → картинки каждые 300 знаков → итог + CTA. Ошибки: длинное введение, кликбейт, отсутствие визуала. Обложка: контраст, лицо, 16:9. Бесплатные фото: Unsplash, Pexels.</p><button class="back-to-toc" onclick="document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">Вернуться</button></div>`,
-        // 6 - Видео + ИИ + Продвижение (Глава 7,8,9)
-        `<div><div class="chapter-badge">🎬 Глава 7 · ВИДЕО</div><p>Для старта: смартфон + петличка + дневной свет. Хронометраж новичка: 3–7 минут. Обложка: лицо+эмоция 3–5 слов. Название обещает решение.</p><div class="chapter-badge">🤖 Глава 8 · ИИ</div><p>Дзен разрешает ИИ при условии маркировки в первом абзаце: «Создано с помощью искусственного интеллекта». Без маркировки → демонетизация.</p><div class="chapter-badge">💬 Глава 9 · КОММЕНТАРИИ</div><p>Отвечайте на первые 20–30 комментариев под новым постом в первые сутки — это запускает волну показов. Не выгорайте: 2 тайм-слота по 15 минут.</p><button class="back-to-toc" onclick="document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">К содержанию</button></div>`,
-        // 7 - Деньги: монетизация + налоги (Главы 10-12)
-        `<div><div class="chapter-badge">💰 ГЛАВА 10-11 · ЗАРАБОТОК</div><h1 class="ency-title">Основная монетизация</h1><p>Условия: 100 подписчиков, 7 дней активности, уникальный контент. CPM зависит от ниши: финансы до 800₽, юмор 30–100₽. Новичок при 5–10 статьях получает 500–3000₽/мес.</p><div class="chapter-badge">📌 Дзен-Подписки и донаты</div><p>Подписки (99–599₽/мес, комиссия 30%), донаты «Спасибо» — 0% комиссии. Нативная реклама напрямую от брендов.</p><div class="chapter-badge">🧾 ГЛАВА 12 · НАЛОГИ</div><p>Самозанятость (НПД): 4% от физлиц, 6% от юрлиц. Регистрация в приложении «Мой налог», лимит 2.4 млн/год. Налог до 28 числа. Без самозанятости Дзен удерживает 13% НДФЛ.</p><button class="back-to-toc" onclick="document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">Оглавление</button></div>`,
-        // 8 - Аналитика 13 глава
-        `<div><div class="chapter-badge">📊 ЧАСТЬ V · АНАЛИТИКА</div><h1 class="ency-title">Ключевые метрики для роста</h1><ul><li><strong>Показы vs просмотры</strong> — 90–97% потерь норма.</li><li><strong>Дочитывания</strong> — выше 30% для длинных статей, иначе показы падают.</li><li><strong>CTR</strong> 3–7% норма, ниже 2% — меняйте обложку.</li><li><strong>Время просмотра</strong> — суммарное влияет на ранжирование.</li><li><strong>Подписчики</strong> — конверсия 0.5–3% от просмотров.</li><li><strong>ER (вовлечённость)</strong> — комментарии тяжелее лайков.</li></ul><div class="warning-card">📉 Если упали дочитывания — срочно проверяйте структуру статьи!</div><button class="back-to-toc" onclick="document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">К оглавлению</button></div>`,
-        // 9 - Кризисы, выгорание, теневой бан, демонетизация, блокировка
-        `<div><div class="chapter-badge">🆘 ЧАСТЬ VI · КРИЗИСЫ</div><h1 class="ency-title">Падение охватов: алгоритм действий</h1><p><strong>Шаг 1:</strong> определить характер (резкое или плавное). <strong>Шаг 2:</strong> проверить последние 5 публикаций на дочитываемость и CTR. <strong>Шаг 3:</strong> исключить теневой бан — если CTR нормальный, а охватов нет.</p><div class="chapter-badge">🔥 ВЫГОРАНИЕ</div><p>Симптомы: апатия, злость при виде Студии. Возьмите паузу 5–7 дней, снизьте планку до 2 статей в неделю.</p><div class="chapter-badge">⚖️ САНКЦИИ</div><p><strong>Теневой бан:</strong> публикуйте качественный контент + просите живые комментарии, через 7–14 дней проходит.<br><strong>Демонетизация:</strong> найдите публикацию-нарушитель, удалите, подайте апелляцию.<br><strong>Блокировка:</strong> за пропаганду наркотиков/экстремизм или повторные тяжёлые нарушения — восстановление невозможно.</p><button class="back-to-toc" onclick="document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">Вернуться в содержание</button></div>`
+        `<div><div class="chapter-badge">СЛОВАРЬ 16–30</div><div class="glossary-grid"><div class="term"><strong>16. Студия Дзена</strong> — личный кабинет.</div><div class="term"><strong>17. Теги</strong> — для поиска.</div><div class="term"><strong>18. Уникальность</strong> — авторский взгляд.</div><div class="term"><strong>19. CPM</strong> — цена 1000 показов (80–600₽).</div><div class="term"><strong>20. CTR</strong> — кликабельность, норма 3–7%.</div><div class="term"><strong>21. Дзен-Подписки</strong> — платный доступ.</div><div class="term"><strong>22. Донаты</strong> — кнопка «Спасибо».</div><div class="term"><strong>23. Отложенная публикация</strong> — планирование.</div><div class="term"><strong>24. Черновик</strong> — хранение идей.</div><div class="term"><strong>25. Дублированный контент</strong> — запрещён.</div><div class="term"><strong>26. Теневой бан</strong> — скрытые ограничения.</div><div class="term"><strong>27. Демонетизация</strong> — отключение рекламы.</div><div class="term"><strong>28. Контент-план</strong> — дорожная карта.</div><div class="term"><strong>29. Ниша</strong> — тематика.</div><div class="term"><strong>30. УТП</strong> — почему выбирают вас.</div></div><div class="warning-card">🧠 Совет: Распечатайте эти термины.</div><button class="back-to-toc" data-goto-toc="1">📚 К содержанию</button></div>`,
+        // 4 - Алгоритм + Форматы
+        `<div><div class="chapter-badge">⚙️ Глава 2 · АЛГОРИТМ</div><h1 class="ency-title">Как думает нейросеть Дзена</h1><p>Алгоритм ранжирует по: дочитывание, время просмотра, комментарии. <strong>Принцип снежного кома</strong>: тестовая группа → при хороших сигналах охват ×10.</p><div class="myth-badge"><strong>🚫 Мифы:</strong> «алгоритм заблокировал» → 95% падение качества.</div><div class="chapter-badge">📱 Глава 3 · ФОРМАТЫ</div><ul><li><strong>Статья</strong> (2000+ знаков)</li><li><strong>Пост</strong> (300–800 знаков)</li><li><strong>Видео гор/верт</strong></li><li><strong>Нарратив</strong> — слайды как сторис</li></ul><button class="back-to-toc" data-goto-toc="1">📑 К содержанию</button></div>`,
+        // 5 - Правила + Стратегия
+        `<div><div class="chapter-badge">⚠️ Глава 4 · ЗАПРЕЩЕННЫЙ КОНТЕНТ</div><p><strong>Шкала:</strong> предупреждение → демонетизация → теневой бан → блокировка. Запрещены: насилие, порно, копипаст, фейки.</p><hr><div class="chapter-badge">📝 Глава 5-6 · СТРАТЕГИЯ СТАТЕЙ</div><p>Анатомия дочитывания: заголовок-польза → лид без воды → короткие абзацы → картинки → CTA. Обложка: контраст, 16:9. Бесплатные фото: Unsplash, Pexels.</p><button class="back-to-toc" data-goto-toc="1">📖 К содержанию</button></div>`,
+        // 6 - Видео+ИИ+Продвижение
+        `<div><div class="chapter-badge">🎬 Глава 7 · ВИДЕО</div><p>Для старта: смартфон + петличка. Хронометраж 3–7 минут. Обложка: лицо+эмоция+короткий текст</p><div class="chapter-badge">🤖 Глава 8 · ИИ</div><p>ИИ разрешён, но обязательна маркировка в первом абзаце: «Создано ИИ». Без маркировки → демонетизация.</p><div class="chapter-badge">💬 Глава 9 · КОММЕНТАРИИ</div><p>Отвечайте на первые 20–30 комментов в первые сутки — запуск волны показов.</p><button class="back-to-toc" data-goto-toc="1">📚 Содержание</button></div>`,
+        // 7 - Деньги + налоги
+        `<div><div class="chapter-badge">💰 ГЛАВА 10-11 · ЗАРАБОТОК</div><h1 class="ency-title">Основная монетизация</h1><p>Условия: 100 подписчиков, 7 дней активности. CPM: финансы до 800₽, юмор 30–100₽. Новичок: 500–3000₽/мес при 5–10 статьях.</p><div class="chapter-badge">📌 Дзен-Подписки и донаты</div><p>Подписки 99–599₽/мес (комиссия 30%), донаты «Спасибо» — 0% комиссии.</p><div class="chapter-badge">🧾 ГЛАВА 12 · НАЛОГИ</div><p>Самозанятость (НПД): 4% (физлица) / 6% (юрлица). Регистрация в «Мой налог». Без самозанятости Дзен удерживает 13%.</p><button class="back-to-toc" data-goto-toc="1">🔖 К содержанию</button></div>`,
+        // 8 - Аналитика
+        `<div><div class="chapter-badge">📊 ЧАСТЬ V · АНАЛИТИКА</div><h1 class="ency-title">Ключевые метрики для роста</h1><ul><li><strong>Показы vs просмотры</strong> — 90–97% потерь норма.</li><li><strong>Дочитывания</strong> — выше 30% для длинных статей.</li><li><strong>CTR</strong> 3–7% норма, ниже 2% — меняйте обложку.</li><li><strong>Время просмотра</strong> — суммарное влияет на ранжирование.</li><li><strong>Подписчики</strong> — конверсия 0.5–3%.</li></ul><div class="warning-card">📉 Проверяйте дочитывания регулярно!</div><button class="back-to-toc" data-goto-toc="1">📚 К оглавлению</button></div>`,
+        // 9 - Кризисы
+        `<div><div class="chapter-badge">🆘 ЧАСТЬ VI · КРИЗИСЫ</div><h1 class="ency-title">Падение охватов: алгоритм</h1><p><strong>Шаг 1:</strong> определить характер. <strong>Шаг 2:</strong> проверить 5 последних публикаций. <strong>Шаг 3:</strong> исключить теневой бан.</p><div class="chapter-badge">🔥 ВЫГОРАНИЕ</div><p>Пауза 5–7 дней, снизить планку до 2 статей в неделю.</p><div class="chapter-badge">⚖️ САНКЦИИ</div><p><strong>Теневой бан:</strong> качественный контент + живые комментарии. <strong>Демонетизация:</strong> удалить нарушение, подать апелляцию. <strong>Блокировка:</strong> за тяжёлые нарушения — не восстанавливается.</p><button class="back-to-toc" data-goto-toc="1">📖 К содержанию</button></div>`
     ];
 
     const total = pagesContent.length;
@@ -294,69 +326,111 @@
         counterSpan.innerText = `стр. 1 / ${total}`;
     }
 
-    function flip(delta) {
-        const newIdx = currentIdx + delta;
-        if (newIdx < 0 || newIdx >= total) return;
-        const cur = pageElements[currentIdx];
-        const nxt = pageElements[newIdx];
-        cur.style.transform = delta === 1 ? 'rotateY(-180deg)' : 'rotateY(180deg)';
-        nxt.style.transform = 'rotateY(0deg)';
-        cur.style.pointerEvents = 'none';
-        nxt.style.pointerEvents = 'auto';
-        cur.style.zIndex = total - currentIdx;
-        nxt.style.zIndex = total - newIdx;
-        currentIdx = newIdx;
-        counterSpan.innerText = `стр. ${currentIdx+1} / ${total}`;
-    }
-
-    function jumpToPage(pageIndex) {
-        if (pageIndex < 0 || pageIndex >= total) return;
-        while (currentIdx !== pageIndex) {
-            const dir = pageIndex > currentIdx ? 1 : -1;
-            const newIdx = currentIdx + dir;
-            if (newIdx < 0 || newIdx >= total) break;
+    function flipToPage(destinationIdx) {
+        if (destinationIdx === currentIdx) return;
+        if (destinationIdx < 0 || destinationIdx >= total) return;
+        const dir = destinationIdx > currentIdx ? 1 : -1;
+        const steps = Math.abs(destinationIdx - currentIdx);
+        function doFlip(step) {
+            if (step === 0) return;
+            const next = currentIdx + (dir === 1 ? 1 : -1);
+            if (next < 0 || next >= total) return;
             const cur = pageElements[currentIdx];
-            const nxt = pageElements[newIdx];
+            const nxt = pageElements[next];
             cur.style.transform = dir === 1 ? 'rotateY(-180deg)' : 'rotateY(180deg)';
             nxt.style.transform = 'rotateY(0deg)';
             cur.style.pointerEvents = 'none';
             nxt.style.pointerEvents = 'auto';
             cur.style.zIndex = total - currentIdx;
-            nxt.style.zIndex = total - newIdx;
-            currentIdx = newIdx;
+            nxt.style.zIndex = total - next;
+            currentIdx = next;
             counterSpan.innerText = `стр. ${currentIdx+1} / ${total}`;
+            setTimeout(() => doFlip(step - 1), 100);
+        }
+        doFlip(steps);
+    }
+
+    // Явный jump для обработчиков
+    function jumpToPage(pageIndex) {
+        flipToPage(pageIndex);
+    }
+
+    globalJumpToPage = jumpToPage;
+
+    // Обработка кликов по динамическим ссылкам (содержание, кнопки)
+    function attachDynamicEvents() {
+        // Все элементы с data-goto-page
+        document.querySelectorAll('[data-goto-page]').forEach(el => {
+            el.removeEventListener('click', dynamicClickHandler);
+            el.addEventListener('click', dynamicClickHandler);
+        });
+        // Все кнопки возврата к содержанию
+        document.querySelectorAll('[data-goto-toc]').forEach(el => {
+            el.removeEventListener('click', tocClickHandler);
+            el.addEventListener('click', tocClickHandler);
+        });
+    }
+
+    function dynamicClickHandler(e) {
+        const page = parseInt(e.currentTarget.getAttribute('data-goto-page'), 10);
+        if (!isNaN(page) && page >= 0 && page < total) {
+            jumpToPage(page);
         }
     }
 
-    buildBook();
-    prevBtn.addEventListener('click', () => flip(-1));
-    nextBtn.addEventListener('click', () => flip(1));
-    document.querySelectorAll('.toc-link').forEach(btn => {
-        btn.addEventListener('click', () => jumpToPage(parseInt(btn.dataset.page, 10)));
-    });
-// VK Bridge инициализация с защитой от скриншотов
-(function() {
-    if (typeof vkBridge !== 'undefined') {
-        vkBridge.subscribe((event) => {
-            console.log('VK Bridge event:', event.detail);
-        });
-        
-        vkBridge.send('VKWebAppInit')
-            .then(() => {
-                console.log('✅ VK Mini App initialized');
-                // ЗАПРЕТ СКРИНШОТОВ (работает на мобильных устройствах)
-                return vkBridge.send('VKWebAppSetScreenshotSettings', { is_secret: true });
-            })
-            .then(() => console.log('✅ Screenshot protection enabled'))
-            .catch((error) => console.error('❌ VK Bridge error:', error));
-    } else {
-        const body = document.querySelector('.book-wrapper');
-        const hint = document.createElement('div');
-        hint.style.cssText = 'background:#f0e0d0;padding:8px 16px;border-radius:30px;text-align:center;margin-bottom:15px;font-size:13px;color:#7a5a40;';
-        hint.innerText = '💡 Предпросмотр вне VK. Приложение станет полноценным внутри ВКонтакте.';
-        body.insertBefore(hint, body.firstChild);
+    function tocClickHandler(e) {
+        jumpToPage(1);  // страница с содержанием (индекс 1)
     }
-})();
+
+    // после каждой смены страницы обновляем обработчики (т.к. innerHTML страниц меняется)
+    const origFlip = flipToPage;
+    window.flipToPage = function(idx) {
+        origFlip(idx);
+        setTimeout(() => attachDynamicEvents(), 100);
+    };
+    flipToPage = function(idx) {
+        origFlip(idx);
+        setTimeout(() => attachDynamicEvents(), 100);
+    };
+
+    buildBook();
+    // Подмена для кнопок навигации
+    prevBtn.addEventListener('click', () => {
+        if (currentIdx > 0) flipToPage(currentIdx - 1);
+    });
+    nextBtn.addEventListener('click', () => {
+        if (currentIdx < total - 1) flipToPage(currentIdx + 1);
+    });
+    
+    document.querySelectorAll('.toc-link').forEach(btn => {
+        btn.addEventListener('click', () => {
+            let target = parseInt(btn.dataset.page, 10);
+            flipToPage(target);
+        });
+    });
+    
+    // первичная привязка обработчиков для содержания
+    setTimeout(() => attachDynamicEvents(), 200);
+
+    // VK Bridge с защитой от скриншотов
+    (function() {
+        if (typeof vkBridge !== 'undefined') {
+            vkBridge.subscribe((event) => { console.log('VK Bridge event:', event.detail); });
+            vkBridge.send('VKWebAppInit')
+                .then(() => {
+                    console.log('✅ VK Mini App initialized');
+                    return vkBridge.send('VKWebAppSetScreenshotSettings', { is_secret: true });
+                })
+                .then(() => console.log('✅ Screenshot protection enabled'))
+                .catch((error) => console.error('❌ VK Bridge error:', error));
+        } else {
+            const body = document.querySelector('.book-wrapper');
+            const hint = document.createElement('div');
+            hint.style.cssText = 'background:#f0e0d0;padding:8px 16px;border-radius:30px;text-align:center;margin-bottom:15px;font-size:13px;color:#7a5a40;';
+            hint.innerText = '💡 Предпросмотр вне VK. Приложение станет полноценным внутри ВКонтакте.';
+            body.insertBefore(hint, body.firstChild);
+        }
+    })();
 </script>
 </body>
 </html>
