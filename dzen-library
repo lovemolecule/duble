@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Библиотека знаний Дзен | Энциклопедия автора</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #2e241f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            padding: 30px 20px;
+            background-image: radial-gradient(circle at 15% 30%, rgba(85, 65, 50, 0.5) 1.5%, transparent 2.5%),
+                              radial-gradient(circle at 85% 70%, rgba(60, 45, 35, 0.4) 1.8%, transparent 2.2%);
+            background-size: 45px 45px, 38px 38px;
+        }
+
+        .book-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 1400px;
+            background: transparent;
+        }
+
+        /* ГЛАВНОЕ ОГЛАВЛЕНИЕ — панель навигации сверху */
+        .toc-panel {
+            background: #fef3e4;
+            border-radius: 60px;
+            margin-bottom: 28px;
+            padding: 14px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,240,0.8);
+            backdrop-filter: blur(2px);
+            border: 1px solid #e7cfb5;
+        }
+
+        .toc-link {
+            background: transparent;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 6px 16px;
+            border-radius: 40px;
+            color: #5a3e2a;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.3px;
+            background: #fffaf2;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .toc-link:hover {
+            background: #e7d1ba;
+            color: #2c1a10;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .book-container {
+            position: relative;
+            width: 100%;
+            height: 78vh;
+            min-height: 580px;
+            background: transparent;
+            perspective: 2200px;
+        }
+
+        .book {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+
+        .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform-style: preserve-3d;
+            transform-origin: left center;
+            transition: transform 0.65s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            backface-visibility: hidden;
+            z-index: 10;
+        }
+
+        .page-front {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #fffbf4;
+            background-image: linear-gradient(145deg, #fffcf5 0%, #fff7ec 100%);
+            box-shadow: 0 25px 40px -18px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(215, 185, 135, 0.5);
+            border-radius: 6px 14px 14px 6px;
+            padding: 32px 42px 38px 48px;
+            overflow-y: auto;
+            backface-visibility: hidden;
+            font-family: 'Inter', sans-serif;
+            color: #2d241d;
+            scrollbar-width: thin;
+        }
+
+        .page-front::-webkit-scrollbar {
+            width: 5px;
+            background: #eaddcd;
+        }
+        .page-front::-webkit-scrollbar-thumb {
+            background: #c0a07a;
+            border-radius: 10px;
+        }
+
+        /* Единый стиль для всех глав и заголовков */
+        h1, h2, h3, .chapter-head {
+            font-family: 'Playfair Display', serif;
+            letter-spacing: -0.2px;
+        }
+
+        /* Заголовки страниц — единый теплый цвет */
+        .ency-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #b4602c;
+            margin-bottom: 0.6rem;
+            margin-top: 0;
+            border-left: 5px solid #dc9e65;
+            padding-left: 18px;
+            background: none;
+            -webkit-background-clip: unset;
+            background-clip: unset;
+            color: #b4602c;
+        }
+
+        .chapter-badge {
+            display: inline-block;
+            background: #ecdbbc;
+            padding: 4px 18px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #7c571f;
+            margin: 18px 0 12px 0;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+
+        .glossary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 14px;
+            margin: 20px 0;
+        }
+
+        .term {
+            background: #fef5ea;
+            border-left: 4px solid #dc9e65;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 0.88rem;
+            transition: all 0.2s;
+        }
+
+        .term strong {
+            font-weight: 700;
+            color: #b1551c;
+            font-family: monospace;
+        }
+
+        /* кнопки навигации */
+        .navigation {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            z-index: 55;
+            pointer-events: none;
+        }
+
+        .nav-btn {
+            pointer-events: auto;
+            background: #5e4230;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #fff2e4;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            backdrop-filter: blur(2px);
+        }
+
+        .nav-btn:hover {
+            background: #8b5e40;
+            transform: scale(0.96);
+        }
+
+        .page-counter {
+            position: absolute;
+            bottom: 22px;
+            right: 45px;
+            font-size: 0.75rem;
+            color: #b68b60;
+            font-family: monospace;
+            z-index: 35;
+            background: rgba(255, 248, 235, 0.8);
+            padding: 3px 14px;
+            border-radius: 50px;
+            backdrop-filter: blur(3px);
+        }
+
+        .highlight {
+            background: #f5e5d3;
+            padding: 0 4px;
+            font-weight: 600;
+            border-radius: 6px;
+        }
+
+        hr {
+            margin: 18px 0;
+            border: none;
+            height: 1px;
+            background: #e6d5be;
+        }
+
+        /* доп анимация при наведении на страницу */
+        .page:hover .page-front {
+            transition: box-shadow 0.25s ease;
+            box-shadow: 0 28px 45px -15px rgba(0,0,0,0.4), inset 0 0 0 1px #e7d0b0;
+        }
+
+        /* кнопка возврата в оглавление */
+        .back-to-toc {
+            position: sticky;
+            bottom: 12px;
+            float: right;
+            background: #e9d5be;
+            border: none;
+            font-size: 0.75rem;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #51371f;
+            margin-top: 20px;
+            margin-right: 5px;
+        }
+        .back-to-toc:hover {
+            background: #cfa67b;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 780px) {
+            .page-front {
+                padding: 22px 22px 28px 28px;
+            }
+            .ency-title {
+                font-size: 1.6rem;
+            }
+            .glossary-grid {
+                grid-template-columns: 1fr;
+            }
+            .toc-link {
+                font-size: 0.7rem;
+                padding: 4px 12px;
+            }
+            .toc-panel {
+                padding: 10px 16px;
+                gap: 8px;
+            }
+            .nav-btn {
+                padding: 6px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="book-wrapper">
+    <!-- Панель оглавления (гиперссылки) -->
+    <div class="toc-panel" id="tocPanel">
+        <button class="toc-link" data-page="0">📖 Вступление</button>
+        <button class="toc-link" data-page="1">📘 Словарь (1-15)</button>
+        <button class="toc-link" data-page="2">📗 Словарь (16-30)</button>
+        <button class="toc-link" data-page="3">🎬 Форматы + Правила</button>
+        <button class="toc-link" data-page="4">✍️ Стратегия контента</button>
+        <button class="toc-link" data-page="5">🤖 ИИ + Продвижение</button>
+        <button class="toc-link" data-page="6">💰 Заработок + Налоги</button>
+        <button class="toc-link" data-page="7">📊 Аналитика</button>
+        <button class="toc-link" data-page="8">🚨 Кризисы и санкции</button>
+    </div>
+
+    <div class="book-container">
+        <div class="book" id="book"></div>
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn">◀ Назад</button>
+            <button class="nav-btn" id="nextBtn">Вперёд ▶</button>
+        </div>
+        <div class="page-counter" id="pageCounter">стр. 1 / 0</div>
+    </div>
+</div>
+
+<script>
+    // ------------------------------
+    // ЕДИНЫЙ СТИЛЬ ГЛАВ + ГИПЕРССЫЛКИ + АНИМАЦИЯ
+    // МАССИВ СТРАНИЦ С КНОПКАМИ "НАВЕРХ ОГЛАВЛЕНИЯ"
+    // ------------------------------
+    const pagesHTML = [
+        // СТР 0 - Вступление
+        `<div>
+            <div class="chapter-badge">ВСТУПЛЕНИЕ</div>
+            <h1 class="ency-title">Почему нужно прочесть</h1>
+            <p style="font-size:1.05rem; line-height:1.5;">Вы завели канал в Дзене и хотите понять, что делать дальше. Эта библиотека знаний — ваш план бесплатного доступа. Алгоритмы, монетизация, секреты дочитываний — без воды и фальши.</p>
+            <hr>
+            <h3>Основные вопросы новичка, которые разберём:</h3>
+            <ul style="margin-left: 1.5rem; margin-top: 10px;">
+                <li>Как алгоритм оценивает контент и даёт охваты?</li>
+                <li>Почему дочитывания — главная валюта Дзена?</li>
+                <li>Как зарабатывать с нуля и не попасть под санкции?</li>
+                <li>Что делать при падении просмотров и теневом бане?</li>
+            </ul>
+            <div style="margin-top: 30px; background:#F4E9DB; border-radius: 24px; padding: 20px;">
+                <strong>📚 Структура:</strong> 6 частей, 15 глав, словарь из 30 терминов + пошаговые стратегии.
+            </div>
+            <button class="back-to-toc" onclick="window.scrollTo({top:0,behavior:'smooth'}); document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">📑 Вернуться к оглавлению</button>
+        </div>`,
+        
+        // СТР 1 - словарь 1-15
+        `<div>
+            <div class="chapter-badge">ЧАСТЬ I · Глава 1</div>
+            <h1 class="ency-title">Словарь дзен-автора (Часть 1)</h1>
+            <div class="glossary-grid">
+                <div class="term"><strong>1. Алгоритм Дзена</strong> — нейросеть, ранжирующая публикации.</div>
+                <div class="term"><strong>2. Вовлечённость (ER)</strong> — лайки+комменты+дочитывания/показы.</div>
+                <div class="term"><strong>3. Воронка чтения</strong> — путь от карточки до финала.</div>
+                <div class="term"><strong>4. Дочитывание</strong> — читатель дошёл до конца.</div>
+                <div class="term"><strong>5. Заголовок</strong> — главный крючок внимания.</div>
+                <div class="term"><strong>6. Карточка публикации</strong> — обложка + заголовок.</div>
+                <div class="term"><strong>7. Канал</strong> — ваш дом в Дзене.</div>
+                <div class="term"><strong>8. Кликбейт</strong> — допустимо в меру.</div>
+                <div class="term"><strong>9. Монетизация</strong> — рекламные показы.</div>
+                <div class="term"><strong>10. Нарратив</strong> — слайд-история.</div>
+                <div class="term"><strong>11. Обложка</strong> — 16:9, яркая.</div>
+                <div class="term"><strong>12. Охват (показы)</strong> — сколько раз показали.</div>
+                <div class="term"><strong>13. Призыв к действию (CTA)</strong> — «добавь в закладки».</div>
+                <div class="term"><strong>14. Просмотр</strong> — клик по карточке.</div>
+                <div class="term"><strong>15. Статистика</strong> — пульс канала.</div>
+            </div>
+            <button class="back-to-toc" onclick="window.scrollTo({top:0,behavior:'smooth'}); document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">📑 Вернуться к оглавлению</button>
+        </div>`,
+        
+        // СТР 2 - словарь 16-30 + алгоритм
+        `<div>
+            <div class="chapter-badge">Словарь (продолжение)</div>
+            <div class="glossary-grid">
+                <div class="term"><strong>16. Студия Дзена</strong> — управление каналом.</div>
+                <div class="term"><strong>17. Теги</strong> — помогают поиску.</div>
+                <div class="term"><strong>18. Уникальность контента</strong> — авторский взгляд.</div>
+                <div class="term"><strong>19. CPM</strong> — цена 1000 показов рекламы.</div>
+                <div class="term"><strong>20. CTR</strong> — кликабельность карточки.</div>
+                <div class="term"><strong>21. Дзен-Подписки</strong> — платный доступ.</div>
+                <div class="term"><strong>22. Донаты</strong> — кнопка «Спасибо».</div>
+                <div class="term"><strong>23. Отложенная публикация</strong> — планирование.</div>
+                <div class="term"><strong>24. Черновик</strong> — хранение идей.</div>
+                <div class="term"><strong>25. Дублированный контент</strong> — запрещено.</div>
+                <div class="term"><strong>26. Теневой бан</strong> — скрытые ограничения.</div>
+                <div class="term"><strong>27. Демонетизация</strong> — отключение рекламы.</div>
+                <div class="term"><strong>28. Контент-план</strong> — дорожная карта.</div>
+                <div class="term"><strong>29. Ниша канала</strong> — тематика.</div>
+                <div class="term"><strong>30. УТП канала</strong> — уникальность.</div>
+            </div>
+            <h2 class="ency-title" style="font-size:1.5rem;">Алгоритм Дзена — доступно</h2>
+            <p>Поведенческие сигналы: дочитывание, время чтения, репост — запускают «снежный ком». Алгоритм помогает авторам. Чем выше удержание — тем больше охваты.</p>
+            <button class="back-to-toc" onclick="window.scrollTo({top:0,behavior:'smooth'}); document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">📑 К оглавлению</button>
+        </div>`,
+        
+        // СТР 3 - Форматы и правила
+        `<div>
+            <div class="chapter-badge">Глава 3 · Форматы</div>
+            <h1 class="ency-title">Статья · Пост · Видео · Нарратив</h1>
+            <ul>
+                <li><strong>Статья</strong> — подробно, от 1500 знаков.</li>
+                <li><strong>Пост</strong> — быстрый контакт, 300-600 знаков.</li>
+                <li><strong>Видео горизонтальное</strong> — 3-10 мин.</li>
+                <li><strong>Вертикальный ролик</strong> — для мобильных.</li>
+                <li><strong>Нарратив</strong> — текст+слайды.</li>
+            </ul>
+            <div class="chapter-badge">Глава 4 · Наказания</div>
+            <p><strong>Запрещённый контент:</strong> экстремизм, насилие, фейки, нарушение авторских прав. Шкала: предупреждение → демонетизация → теневой бан → блокировка.</p>
+            <div style="background:#F2E5D6; border-radius: 18px; padding: 14px; margin-top: 15px;">⚠️ Изучайте правила в Студии, чтобы избежать санкций.</div>
+            <button class="back-to-toc" onclick="window.scrollTo({top:0,behavior:'smooth'}); document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">📑 Оглавление</button>
+        </div>`,
+        
+        // СТР 4 - стратегия контента + визуал
+        `<div>
+            <div class="chapter-badge">ЧАСТЬ II · Стратегия</div>
+            <h2 class="ency-title">Статьи, которые дочитывают</h2>
+            <p><span class="highlight">Анатомия:</span> лид-крючок → тезисы → подзаголовки → примеры → сильная концовка. Ошибки: простыни текста, вода.</p>
+            <h2 class="ency-title" style="font-size:1.4rem;">Визуальная упаковка</h2>
+            <p>Обложка 16:9, контрастность, смысл. Бесплатные фото: Unsplash, Grids. Изображения в тексте каждые 400 слов.</p>
+            <h2 class="ency-title" style="font-size:1.4rem;">Видеоконтент</h2>
+            <p>Минимальный свет, чистый звук. Хронометраж новичка: 4-7 минут. Упаковка: яркий заголовок, описание.</p>
+            <button class="back-to-toc" onclick="window.scrollTo({top:0,behavior:'smooth'}); document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">🔖 Содержание</button>
+        </div>`,
+        
+        // СТР 5 - ИИ + Продвижение
+        `<div>
+            <div class="chapter-badge">Глава 8 · Искусственный интеллект</div>
+            <p><span class="highlight">Позиция Дзена:</span> ИИ-контент разрешён, но обязательна маркировка «Создано с помощью нейросети». Без маркировки — риск демонетизации.</p>
+            <h2 class="ency-title" style="font-size:1.4rem;">Продвижение и комментарии</h2>
+            <p>✅ Отвечайте на комментарии первый час — рост охватов. Чтобы не выгорать: 15 минут утром + 15 вечером. Шаблоны спасают.</p>
+            <div class="chapter-badge">Деньги</div>
+            <p>Монетизация: 1000 просмотров за 7 дней, канал старше 3 мес. CPM новичка: 80-200₽. С 10к просмотров ~ 800-2500₽.</p>
+            <button class="back-to-toc" onclick="window.scrollTo({top:0,behavior:'smooth'}); document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">📋 К оглавлению</button>
+        </div>`,
+        
+        // СТР 6 - Альтернативный заработок + налоги
+        `<div>
+            <div class="chapter-badge">Альтернативные доходы</div>
+            <h3>📌 Дзен-Подписки</h3>
+            <p>Эксклюзив от 99₽/мес для экспертов.</p>
+            <h3>❤️ Донаты (Спасибо)</h3>
+            <p>Доступны от 3000 подписчиков.</p>
+            <h3>📢 Нативная реклама</h3>
+            <p>Прямые интеграции с брендами.</p>
+            <div class="chapter-badge">Налоги для автора</div>
+            <p>Самозанятость (4% или 6%). Оформление через «Мой налог». Платить до 25 числа ежемесячно.</p>
+            <div style="background:#F3E5D7; padding:12px; border-radius:18px; margin-top:15px;">❗ Не игнорируйте налоги — блокировка счетов.</div>
+            <button class="back-to-toc" onclick="window.scrollTo({top:0,behavior:'smooth'}); document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">📚 Вверх</button>
+        </div>`,
+        
+        // СТР 7 - Аналитика
+        `<div>
+            <div class="chapter-badge">ЧАСТЬ V · Аналитика</div>
+            <h1 class="ency-title">Ключевые метрики каждый день</h1>
+            <ul>
+                <li><strong>Просмотры vs Показы</strong> — показы (сколько раз показали), просмотры (клики).</li>
+                <li><strong>Дочитывания</strong> — главная метрика Дзена.</li>
+                <li><strong>CTR</strong> — если ниже 2% — меняйте обложку.</li>
+                <li><strong>Время просмотра</strong> — среднее и суммарное.</li>
+                <li><strong>Подписчики</strong> — прирост и отток.</li>
+                <li><strong>Вовлечённость</strong> — лайки, комментарии.</li>
+            </ul>
+            <p>Совет: раз в неделю аудит в Студии Дзена.</p>
+            <button class="back-to-toc" onclick="window.scrollTo({top:0,behavior:'smooth'}); document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">🔝 Оглавление</button>
+        </div>`,
+        
+        // СТР 8 - Кризисы
+        `<div>
+            <div class="chapter-badge">ЧАСТЬ VI · Кризисы и санкции</div>
+            <h2 class="ency-title">Почему упали охваты?</h2>
+            <p>Причины: падение качества, кликбейт, долгие паузы. Решение: улучшить дочитывания и выходить ритмично.</p>
+            <h2 class="ency-title">Санкции канала</h2>
+            <p><strong>Теневой бан:</strong> просмотры падают на 80%+. Пишите уникальный контент 1-2 недели. <strong>Демонетизация</strong> — из-за дублей или жалоб. <strong>Блокировка</strong> — за нарушения.</p>
+            <div style="margin-top: 30px; background:#F7EDE2; border-radius: 20px; padding: 18px; text-align:center;">
+            🌟 Дзен — марафон. Изучайте метрики, тестируйте идеи, растите.
+            </div>
+            <button class="back-to-toc" onclick="window.scrollTo({top:0,behavior:'smooth'}); document.getElementById('tocPanel').scrollIntoView({behavior:'smooth'});">📖 К содержанию</button>
+        </div>`
+    ];
+
+    const total = pagesHTML.length;
+    let currentIdx = 0;
+    let audioCtx = null;
+
+    const bookDiv = document.getElementById('book');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const counterSpan = document.getElementById('pageCounter');
+    let pageElements = [];
+
+    // Инициализация книги
+    function buildBook() {
+        bookDiv.innerHTML = '';
+        pageElements = [];
+        for (let i = 0; i < total; i++) {
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'page';
+            const front = document.createElement('div');
+            front.className = 'page-front';
+            front.innerHTML = pagesHTML[i];
+            pageDiv.appendChild(front);
+            if (i === 0) {
+                pageDiv.style.transform = 'rotateY(0deg)';
+                pageDiv.style.pointerEvents = 'auto';
+            } else {
+                pageDiv.style.transform = 'rotateY(180deg)';
+                pageDiv.style.pointerEvents = 'none';
+            }
+            pageDiv.style.zIndex = total - i;
+            bookDiv.appendChild(pageDiv);
+            pageElements.push(pageDiv);
+        }
+        updateCounter();
+    }
+
+    // шелест (звуковой эффект)
+    function playRustle() {
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = 410;
+            gain.gain.value = 0.07;
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+            osc.stop(now + 0.18);
+            const buf = 2048;
+            const noise = audioCtx.createScriptProcessor(buf, 1, 1);
+            noise.onaudioprocess = function(e) {
+                const out = e.outputBuffer.getChannelData(0);
+                for (let i = 0; i < buf; i++) out[i] = (Math.random() - 0.5) * 0.055;
+                noise.disconnect();
+            };
+            noise.connect(audioCtx.destination);
+            setTimeout(() => noise.disconnect(), 100);
+        } catch(e) {}
+    }
+
+    function flip(delta) {
+        const newIdx = currentIdx + delta;
+        if (newIdx < 0 || newIdx >= total) return;
+        playRustle();
+        const cur = pageElements[currentIdx];
+        const nxt = pageElements[newIdx];
+        if (delta === 1) {
+            cur.style.transform = 'rotateY(-180deg)';
+            nxt.style.transform = 'rotateY(0deg)';
+        } else {
+            cur.style.transform = 'rotateY(180deg)';
+            nxt.style.transform = 'rotateY(0deg)';
+        }
+        cur.style.pointerEvents = 'none';
+        nxt.style.pointerEvents = 'auto';
+        cur.style.zIndex = total - currentIdx;
+        nxt.style.zIndex = total - newIdx;
+        currentIdx = newIdx;
+        updateCounter();
+        setTimeout(() => { if (Math.random() > 0.6) playRustle(); }, 140);
+    }
+
+    function updateCounter() {
+        counterSpan.innerText = `стр. ${currentIdx+1} / ${total}`;
+    }
+
+    // гиперссылки оглавления
+    function jumpToPage(pageIndex) {
+        if (pageIndex === currentIdx) return;
+        // плавное перелистывание до нужной страницы
+        while (currentIdx !== pageIndex) {
+            const dir = pageIndex > currentIdx ? 1 : -1;
+            const newIdx = currentIdx + dir;
+            if (newIdx < 0 || newIdx >= total) break;
+            const cur = pageElements[currentIdx];
+            const nxt = pageElements[newIdx];
+            if (dir === 1) {
+                cur.style.transform = 'rotateY(-180deg)';
+                nxt.style.transform = 'rotateY(0deg)';
+            } else {
+                cur.style.transform = 'rotateY(180deg)';
+                nxt.style.transform = 'rotateY(0deg)';
+            }
+            cur.style.pointerEvents = 'none';
+            nxt.style.pointerEvents = 'auto';
+            cur.style.zIndex = total - currentIdx;
+            nxt.style.zIndex = total - newIdx;
+            currentIdx = newIdx;
+            updateCounter();
+            playRustle();
+        }
+    }
+
+    buildBook();
+
+    // Кнопки листания
+    prevBtn.addEventListener('click', () => flip(-1));
+    nextBtn.addEventListener('click', () => flip(1));
+
+    // Обработчики для панели оглавления
+    document.querySelectorAll('.toc-link').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const pageNum = parseInt(btn.getAttribute('data-page'), 10);
+            if (!isNaN(pageNum)) jumpToPage(pageNum);
+        });
+    });
+
+    // Активация аудио после взаимодействия
+    function enableAudio() {
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        document.body.removeEventListener('click', enableAudio);
+        document.body.removeEventListener('touchstart', enableAudio);
+    }
+    document.body.addEventListener('click', enableAudio);
+    document.body.addEventListener('touchstart', enableAudio);
+
+    // Стрелки клавиатуры
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') { flip(-1); e.preventDefault(); }
+        if (e.key === 'ArrowRight') { flip(1); e.preventDefault(); }
+    });
+</script>
+</body>
+</html>
