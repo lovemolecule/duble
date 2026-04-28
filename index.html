@@ -350,21 +350,17 @@
         doFlip(steps);
     }
 
-    // Явный jump для обработчиков
     function jumpToPage(pageIndex) {
         flipToPage(pageIndex);
     }
 
     globalJumpToPage = jumpToPage;
 
-    // Обработка кликов по динамическим ссылкам (содержание, кнопки)
     function attachDynamicEvents() {
-        // Все элементы с data-goto-page
         document.querySelectorAll('[data-goto-page]').forEach(el => {
             el.removeEventListener('click', dynamicClickHandler);
             el.addEventListener('click', dynamicClickHandler);
         });
-        // Все кнопки возврата к содержанию
         document.querySelectorAll('[data-goto-toc]').forEach(el => {
             el.removeEventListener('click', tocClickHandler);
             el.addEventListener('click', tocClickHandler);
@@ -379,10 +375,9 @@
     }
 
     function tocClickHandler(e) {
-        jumpToPage(1);  // страница с содержанием (индекс 1)
+        jumpToPage(1);
     }
 
-    // после каждой смены страницы обновляем обработчики (т.к. innerHTML страниц меняется)
     const origFlip = flipToPage;
     window.flipToPage = function(idx) {
         origFlip(idx);
@@ -394,7 +389,6 @@
     };
 
     buildBook();
-    // Подмена для кнопок навигации
     prevBtn.addEventListener('click', () => {
         if (currentIdx > 0) flipToPage(currentIdx - 1);
     });
@@ -409,36 +403,56 @@
         });
     });
     
-    // первичная привязка обработчиков для содержания
     setTimeout(() => attachDynamicEvents(), 200);
 
-   // VK Bridge инициализация с ЗАПРЕТОМ скриншотов
-(function() {
-    if (typeof vkBridge !== 'undefined') {
-        vkBridge.subscribe((event) => {
-            console.log('VK Bridge event:', event.detail);
-        });
-        
-        vkBridge.send('VKWebAppInit')
-            .then(() => {
-                console.log('✅ VK Mini App initialized');
-                // ПЫТАЕМСЯ ЗАПРЕТИТЬ СКРИНШОТЫ (работает в актуальных версиях)
-                return vkBridge.send('VKWebAppDisableScreenshots');
-            })
-            .then(() => console.log('✅ Screenshots DISABLED'))
-            .catch((error) => {
-                console.error('❌ Screenshot protection error:', error);
-                // fallback: старый метод
-                return vkBridge.send('VKWebAppSetScreenshotSettings', { is_secret: true })
-                    .catch(e => console.warn('Fallback also failed', e));
+    // ========== VK Bridge ИНИЦИАЛИЗАЦИЯ + ВОДЯНОЙ ЗНАК С ID ПОЛЬЗОВАТЕЛЯ ==========
+    (function() {
+        if (typeof vkBridge !== 'undefined') {
+            vkBridge.subscribe((event) => {
+                console.log('VK Bridge event:', event.detail);
             });
-    } else {
-        const body = document.querySelector('.book-wrapper');
-        const hint = document.createElement('div');
-        hint.style.cssText = 'background:#f0e0d0;padding:8px 16px;border-radius:30px;text-align:center;margin-bottom:15px;font-size:13px;color:#7a5a40;';
-        hint.innerText = '💡 Предпросмотр вне VK. Приложение станет полноценным внутри ВКонтакте.';
-        body.insertBefore(hint, body.firstChild);
-    }
+            
+            vkBridge.send('VKWebAppInit')
+                .then(() => {
+                    console.log('✅ VK Mini App initialized');
+                    // Пытаемся запретить скриншоты
+                    return vkBridge.send('VKWebAppDisableScreenshots')
+                        .catch(() => vkBridge.send('VKWebAppSetScreenshotSettings', { is_secret: true }));
+                })
+                .then(() => console.log('✅ Screenshot protection attempt done'))
+                .catch((error) => console.error('❌ VK Bridge error:', error))
+                .finally(() => {
+                    // ВОДЯНОЙ ЗНАК С ID ПОЛЬЗОВАТЕЛЯ (добавляем после инициализации)
+                    vkBridge.send('VKWebAppGetUserInfo')
+                        .then(data => {
+                            const userId = data.id;
+                            const watermark = document.createElement('div');
+                            watermark.style.cssText = 'position:fixed; bottom:6px; left:8px; font-size:9px; color:rgba(100,70,40,0.25); font-family:monospace; pointer-events:none; z-index:9999; background:transparent; white-space:nowrap;';
+                            watermark.innerText = `Дзенопедия • ID:${userId} • ${new Date().toLocaleDateString()}`;
+                            document.body.appendChild(watermark);
+                            console.log('✅ Watermark added for user:', userId);
+                        })
+                        .catch(err => {
+                            console.warn('Could not get user info, adding demo watermark', err);
+                            const watermark = document.createElement('div');
+                            watermark.style.cssText = 'position:fixed; bottom:6px; left:8px; font-size:9px; color:rgba(100,70,40,0.25); font-family:monospace; pointer-events:none; z-index:9999;';
+                            watermark.innerText = `Дзенопедия • Демо-режим`;
+                            document.body.appendChild(watermark);
+                        });
+                });
+        } else {
+            const body = document.querySelector('.book-wrapper');
+            const hint = document.createElement('div');
+            hint.style.cssText = 'background:#f0e0d0;padding:8px 16px;border-radius:30px;text-align:center;margin-bottom:15px;font-size:13px;color:#7a5a40;';
+            hint.innerText = '💡 Предпросмотр вне VK. Приложение станет полноценным внутри ВКонтакте.';
+            body.insertBefore(hint, body.firstChild);
+            
+            // Демо-водяной знак для предпросмотра
+            const demoWatermark = document.createElement('div');
+            demoWatermark.style.cssText = 'position:fixed; bottom:6px; left:8px; font-size:9px; color:rgba(100,70,40,0.25); font-family:monospace; pointer-events:none; z-index:9999;';
+            demoWatermark.innerText = `Дзенопедия • Демо‑режим`;
+            document.body.appendChild(demoWatermark);
+        }
     })();
 </script>
 </body>
