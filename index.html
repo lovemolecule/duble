@@ -412,24 +412,33 @@
     // первичная привязка обработчиков для содержания
     setTimeout(() => attachDynamicEvents(), 200);
 
-    // VK Bridge с защитой от скриншотов
-    (function() {
-        if (typeof vkBridge !== 'undefined') {
-            vkBridge.subscribe((event) => { console.log('VK Bridge event:', event.detail); });
-            vkBridge.send('VKWebAppInit')
-                .then(() => {
-                    console.log('✅ VK Mini App initialized');
-                    return vkBridge.send('VKWebAppSetScreenshotSettings', { is_secret: true });
-                })
-                .then(() => console.log('✅ Screenshot protection enabled'))
-                .catch((error) => console.error('❌ VK Bridge error:', error));
-        } else {
-            const body = document.querySelector('.book-wrapper');
-            const hint = document.createElement('div');
-            hint.style.cssText = 'background:#f0e0d0;padding:8px 16px;border-radius:30px;text-align:center;margin-bottom:15px;font-size:13px;color:#7a5a40;';
-            hint.innerText = '💡 Предпросмотр вне VK. Приложение станет полноценным внутри ВКонтакте.';
-            body.insertBefore(hint, body.firstChild);
-        }
+   // VK Bridge инициализация с ЗАПРЕТОМ скриншотов
+(function() {
+    if (typeof vkBridge !== 'undefined') {
+        vkBridge.subscribe((event) => {
+            console.log('VK Bridge event:', event.detail);
+        });
+        
+        vkBridge.send('VKWebAppInit')
+            .then(() => {
+                console.log('✅ VK Mini App initialized');
+                // ПЫТАЕМСЯ ЗАПРЕТИТЬ СКРИНШОТЫ (работает в актуальных версиях)
+                return vkBridge.send('VKWebAppDisableScreenshots');
+            })
+            .then(() => console.log('✅ Screenshots DISABLED'))
+            .catch((error) => {
+                console.error('❌ Screenshot protection error:', error);
+                // fallback: старый метод
+                return vkBridge.send('VKWebAppSetScreenshotSettings', { is_secret: true })
+                    .catch(e => console.warn('Fallback also failed', e));
+            });
+    } else {
+        const body = document.querySelector('.book-wrapper');
+        const hint = document.createElement('div');
+        hint.style.cssText = 'background:#f0e0d0;padding:8px 16px;border-radius:30px;text-align:center;margin-bottom:15px;font-size:13px;color:#7a5a40;';
+        hint.innerText = '💡 Предпросмотр вне VK. Приложение станет полноценным внутри ВКонтакте.';
+        body.insertBefore(hint, body.firstChild);
+    }
     })();
 </script>
 </body>
