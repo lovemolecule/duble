@@ -468,4 +468,199 @@
                 <li><strong>Конверсия в подписку</strong> — 0.5–3% от просмотров это хорошо.</li>
                 <li><strong>Вовлечённость (лайки + комментарии + сохранения + репосты)</strong> — чем выше, тем активнее алгоритм продвигает.</li>
             </ul>
-            <div class="warning-card">📉 <strong>Совет:</
+            <div class="warning-card">📉 <strong>Совет:</            <div class="warning-card">📉 <strong>Совет:</strong> Проверяйте дочитывания по каждой публикации. Если оно резко упало — алгоритм получил негативный сигнал. Не удаляйте «провальные» статьи, а дорабатывайте их.</div>
+            <button class="back-to-toc" data-goto-toc="1">📚 К оглавлению</button>
+        </div>`,
+        
+        // 8 - Кризисы (падения и выгорание)
+        `<div>
+            <div class="chapter-badge">🆘 ГЛАВА 14 · КРИЗИСЫ</div>
+            <h1 class="ency-title">Падение охватов: алгоритм диагностики</h1>
+            <p><strong>Шаг 1:</strong> Определите характер падения (резкое за 1-2 дня или плавное за 1-2 недели).<br>
+            <strong>Шаг 2:</strong> Проверьте 5 последних публикаций — если дочитывание ниже 20% или CTR ниже 2%, проблема в них.<br>
+            <strong>Шаг 3:</strong> Исключите теневой бан (охваты упали, но CTR и дочитывание остались на месте).<br>
+            <strong>Шаг 4:</strong> Проверьте внешние факторы (праздники, сбои статистики).<br>
+            <strong>Шаг 5:</strong> Сравните с конкурентами в нише — если у всех упало, проблема не в вас.</p>
+            
+            <div class="chapter-badge">🔥 ВЫГОРАНИЕ</div>
+            <p><strong>Признаки:</strong> апатия, раздражение от необходимости писать, прокрастинация, падение качества текстов.</p>
+            <p><strong>Что делать:</strong><br>
+            1. Возьмите паузу 5–7 дней (Дзен не накажет).<br>
+            2. Снизьте нагрузку после возвращения (2–3 статьи в неделю вместо 5).<br>
+            3. Смените фокус — перестаньте смотреть на просмотры и доход хотя бы на неделю.<br>
+            4. Найдите поддержку в чатах авторов Дзена.<br>
+            5. Попробуйте сменить формат или нишу (в рамках близкой тематики).</p>
+            <button class="back-to-toc" data-goto-toc="1">📖 К содержанию</button>
+        </div>`,
+        
+        // 9 - Санкции (теневой бан, демонетизация, блокировка)
+        `<div>
+            <div class="chapter-badge">⚖️ ГЛАВА 15 · САНКЦИИ</div>
+            <h1 class="ency-title">Теневой бан: как распознать и что делать</h1>
+            <p><strong>Причины теневого бана:</strong> масс-лукинг (спам в чужих комментариях), накрутка лайков/боты, резкая смена тематики, жалобы читателей.</p>
+            <p><strong>Что делать:</strong> прекратить спам, опубликовать 1 сильную публикацию с высоким дочитыванием, попросить подписчиков оставить развёрнутые комментарии, ждать 7–14 дней. Если не помогло — написать в поддержку.</p>
+            
+            <div class="chapter-badge">💸 ДЕМОНЕТИЗАЦИЯ</div>
+            <p><strong>Как узнать:</strong> жёлтое уведомление в Студии «Монетизация отключена».<br>
+            <strong>Что делать:</strong> найти публикацию-нарушитель (иконка замка), удалить или исправить, подать апелляцию, подождать 30 дней и подать заявку повторно.</p>
+            
+            <div class="chapter-badge">🚫 БЛОКИРОВКА</div>
+            <p><strong>Причины блокировки навсегда:</strong> пропаганда наркотиков/экстремизма/насилия, порнография, массовые жалобы (10+), многократные нарушения после двух демонетизаций. Блокировка не восстанавливается.</p>
+            <button class="back-to-toc" data-goto-toc="1">📖 К содержанию</button>
+        </div>`
+    ];
+
+    const total = pagesContent.length;
+    let currentIdx = 0;
+    let pageElements = [];
+    const bookDiv = document.getElementById('book');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const counterSpan = document.getElementById('pageCounter');
+
+    function buildBook() {
+        bookDiv.innerHTML = '';
+        pageElements = [];
+        for (let i = 0; i < total; i++) {
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'page';
+            const front = document.createElement('div');
+            front.className = 'page-front';
+            front.innerHTML = pagesContent[i];
+            pageDiv.appendChild(front);
+            pageDiv.style.transform = i === 0 ? 'rotateY(0deg)' : 'rotateY(180deg)';
+            pageDiv.style.pointerEvents = i === 0 ? 'auto' : 'none';
+            pageDiv.style.zIndex = total - i;
+            bookDiv.appendChild(pageDiv);
+            pageElements.push(pageDiv);
+        }
+        counterSpan.innerText = `стр. 1 / ${total}`;
+    }
+
+    function flipToPage(destinationIdx, playSound = true) {
+        if (destinationIdx === currentIdx) return;
+        if (destinationIdx < 0 || destinationIdx >= total) return;
+        if (playSound) playPageFlipSound();
+        
+        const dir = destinationIdx > currentIdx ? 1 : -1;
+        const steps = Math.abs(destinationIdx - currentIdx);
+        function doFlip(step) {
+            if (step === 0) return;
+            const next = currentIdx + (dir === 1 ? 1 : -1);
+            if (next < 0 || next >= total) return;
+            const cur = pageElements[currentIdx];
+            const nxt = pageElements[next];
+            cur.style.transform = dir === 1 ? 'rotateY(-180deg)' : 'rotateY(180deg)';
+            nxt.style.transform = 'rotateY(0deg)';
+            cur.style.pointerEvents = 'none';
+            nxt.style.pointerEvents = 'auto';
+            cur.style.zIndex = total - currentIdx;
+            nxt.style.zIndex = total - next;
+            currentIdx = next;
+            counterSpan.innerText = `стр. ${currentIdx+1} / ${total}`;
+            setTimeout(() => doFlip(step - 1), 100);
+        }
+        doFlip(steps);
+    }
+
+    function jumpToPage(pageIndex) {
+        flipToPage(pageIndex, true);
+    }
+
+    globalJumpToPage = jumpToPage;
+
+    function attachDynamicEvents() {
+        document.querySelectorAll('[data-goto-page]').forEach(el => {
+            el.removeEventListener('click', dynamicClickHandler);
+            el.addEventListener('click', dynamicClickHandler);
+        });
+        document.querySelectorAll('[data-goto-toc]').forEach(el => {
+            el.removeEventListener('click', tocClickHandler);
+            el.addEventListener('click', tocClickHandler);
+        });
+    }
+
+    function dynamicClickHandler(e) {
+        const page = parseInt(e.currentTarget.getAttribute('data-goto-page'), 10);
+        if (!isNaN(page) && page >= 0 && page < total) {
+            jumpToPage(page);
+        }
+    }
+
+    function tocClickHandler(e) {
+        jumpToPage(1);
+    }
+
+    const origFlip = flipToPage;
+    window.flipToPage = function(idx) {
+        origFlip(idx, true);
+        setTimeout(() => attachDynamicEvents(), 100);
+    };
+    flipToPage = function(idx) {
+        origFlip(idx, true);
+        setTimeout(() => attachDynamicEvents(), 100);
+    };
+
+    buildBook();
+    prevBtn.addEventListener('click', () => {
+        if (currentIdx > 0) flipToPage(currentIdx - 1, true);
+    });
+    nextBtn.addEventListener('click', () => {
+        if (currentIdx < total - 1) flipToPage(currentIdx + 1, true);
+    });
+    
+    document.querySelectorAll('.toc-link').forEach(btn => {
+        btn.addEventListener('click', () => {
+            let target = parseInt(btn.dataset.page, 10);
+            flipToPage(target, true);
+        });
+    });
+    
+    setTimeout(() => attachDynamicEvents(), 200);
+
+    // ========== VK Bridge ИНИЦИАЛИЗАЦИЯ + ВОДЯНОЙ ЗНАК ==========
+    (function() {
+        if (typeof vkBridge !== 'undefined') {
+            vkBridge.subscribe((event) => {
+                console.log('VK Bridge event:', event.detail);
+            });
+            
+            vkBridge.send('VKWebAppInit')
+                .then(() => {
+                    console.log('✅ VK Mini App initialized');
+                    return vkBridge.send('VKWebAppDisableScreenshots')
+                        .catch(() => vkBridge.send('VKWebAppSetScreenshotSettings', { is_secret: true }));
+                })
+                .then(() => console.log('✅ Screenshot protection attempt done'))
+                .catch((error) => console.error('❌ VK Bridge error:', error))
+                .finally(() => {
+                    vkBridge.send('VKWebAppGetUserInfo')
+                        .then(data => {
+                            const watermark = document.createElement('div');
+                            watermark.style.cssText = 'position:fixed; bottom:6px; left:8px; font-size:9px; color:rgba(100,70,40,0.25); font-family:monospace; pointer-events:none; z-index:9999; background:transparent; white-space:nowrap;';
+                            watermark.innerText = `Дзенопедия • ID:${data.id} • ${new Date().toLocaleDateString()}`;
+                            document.body.appendChild(watermark);
+                        })
+                        .catch(err => {
+                            const watermark = document.createElement('div');
+                            watermark.style.cssText = 'position:fixed; bottom:6px; left:8px; font-size:9px; color:rgba(100,70,40,0.25); font-family:monospace; pointer-events:none; z-index:9999;';
+                            watermark.innerText = `Дзенопедия • Демо-режим`;
+                            document.body.appendChild(watermark);
+                        });
+                });
+        } else {
+            const body = document.querySelector('.book-wrapper');
+            const hint = document.createElement('div');
+            hint.style.cssText = 'background:#f0e0d0;padding:8px 16px;border-radius:30px;text-align:center;margin-bottom:15px;font-size:13px;color:#7a5a40;';
+            hint.innerText = '💡 Предпросмотр вне VK. Приложение станет полноценным внутри ВКонтакте.';
+            body.insertBefore(hint, body.firstChild);
+            
+            const demoWatermark = document.createElement('div');
+            demoWatermark.style.cssText = 'position:fixed; bottom:6px; left:8px; font-size:9px; color:rgba(100,70,40,0.25); font-family:monospace; pointer-events:none; z-index:9999;';
+            demoWatermark.innerText = `Дзенопедия • Демо‑режим`;
+            document.body.appendChild(demoWatermark);
+        }
+    })();
+</script>
+</body>
+</html>
