@@ -287,17 +287,48 @@
     const pagesContent = [
         // СТРАНИЦА 0 - Вступление
         `<div>
-<!-- ДОБАВЬТЕ ЭТОТ КОД В САМОЕ НАЧАЛО СТРАНИЦЫ 0 -->
-<div style="position: relative;">
-    <div style="position: absolute; top: 0; right: 0; text-align: center; z-index: 100;">
-        <img src="2228.png" 
-             alt="Новый логотип"
-             style="width: 80px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        <p style="font-size: 10px; color: #b4602c; margin-top: 5px;">⭐ Новый</p>
-    </div>
-    <!-- ОСТАЛЬНОЕ СОДЕРЖИМОЕ СТРАНИЦЫ -->
-    <div class="hero-image" style="height:130px; margin-bottom:20px;"></div>
-    ...
+<style>
+    .corner-logo {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        text-align: center;
+        z-index: 1000;
+        background: rgba(255, 245, 235, 0.95);
+        padding: 8px;
+        border-radius: 20px;
+        backdrop-filter: blur(5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .corner-logo img {
+        width: 60px;
+        border-radius: 14px;
+        display: block;
+    }
+    
+    .corner-logo p {
+        font-size: 9px;
+        color: #b4602c;
+        margin-top: 4px;
+    }
+    
+    @media (max-width: 600px) {
+        .corner-logo img {
+            width: 45px;
+        }
+        .corner-logo {
+            top: 10px;
+            right: 10px;
+            padding: 5px;
+        }
+    }
+</style>
+
+<!-- ВСТАВЬТЕ В КОНЕЦ СТРАНИЦЫ ПЕРЕД ЗАКРЫВАЮЩИМ </div> -->
+<div class="corner-logo">
+    <img src="2228.png" alt="Новый логотип">
+    <p>⭐ Новый</p>
 </div>
 		
 <!-- УЛУЧШЕННАЯ ВЕРСИЯ ДЛЯ ТЕЛЕФОНОВ -->
