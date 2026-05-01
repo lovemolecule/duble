@@ -287,28 +287,54 @@
     const pagesContent = [
         // СТРАНИЦА 0 - Вступление
         `<div>
-<div style="text-align: center; margin: 20px 0;">
+<!-- УЛУЧШЕННАЯ ВЕРСИЯ ДЛЯ ТЕЛЕФОНОВ -->
+<style>
+    /* Адаптивные картинки для мобильных */
+    .mobile-logo {
+        text-align: center;
+        margin: 20px 0;
+    }
+    
+    .mobile-logo img {
+        width: min(180px, 60%);  /* На телефоне: 60% от ширины экрана, но не более 180px */
+        max-width: 100%;
+        height: auto;
+        border-radius: 20px;
+        opacity: 0.9;
+        transition: transform 0.3s;
+    }
+    
+    .mobile-logo p {
+        font-size: clamp(11px, 3vw, 14px);  /* Адаптивный размер текста */
+        color: #a0764a;
+        margin-top: 8px;
+    }
+    
+    /* Версия для больших экранов */
+    @media (min-width: 768px) {
+        .mobile-logo img {
+            width: 150px;  /* На планшетах и ПК фиксированный размер */
+        }
+    }
+</style>
+
+<div class="mobile-logo">
     <img src="логотип.jpg" 
-         alt="Иллюстрация к содержанию"
-         style="width: 120px; border-radius: 20px; opacity: 0.9;">
-    <p style="font-size: 12px; color: #a0764a;">Ваш проводник в мире Дзена</p>
- 
+         alt="Логотип Дзенопедии">
+    <p>📖 Ваш проводник в мире Дзена</p>
+</div>
 
-
-<div style="text-align: center; margin: 20px 0;">
+<div class="mobile-logo">
     <img src="логотип2.jpg" 
-         alt="Иллюстрация к содержанию"
-         style="width: 120px; border-radius: 20px; opacity: 0.9;">
-    <p style="font-size: 12px; color: #a0764a;">Ваш проводник в мире Дзена</p>
- 
+         alt="Логотип 2">
+    <p>⚡ Секреты успешных авторов</p>
+</div>
 
-<div style="text-align: center; margin: 20px 0;">
+<div class="mobile-logo">
     <img src="логотип3.jpg" 
-         alt="Иллюстрация к содержанию"
-         style="width: 120px; border-radius: 20px; opacity: 0.9;">
-    <p style="font-size: 12px; color: #a0764a;">Ваш проводник в мире Дзена</p>
+         alt="Логотип 3">
+    <p>🎯 От новичка до профессионала</p>
  
-
 </div>
             <div class="hero-image" style="height:130px; margin-bottom:20px;"></div>
             <div class="chapter-badge">✨ ДЗЕНОПЕДИЯ FREE ✨</div>
